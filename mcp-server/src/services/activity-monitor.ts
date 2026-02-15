@@ -6,6 +6,7 @@
 import { ActivityCategory, type UserActivity } from "../types.js";
 import { categorizeActivity } from "../utils/categories.js";
 import { generateId, now } from "../utils/helpers.js";
+import { detectActivityState, type ActivityStatus } from "../utils/linux-activity.js";
 
 /** In-memory activity log */
 const activityLog: UserActivity[] = [];
@@ -271,6 +272,32 @@ export async function fetchAllActivities(
   // Store all fetched activities
   storeActivities(allActivities);
 
+  // Activity Detection (Linux/Wayland)
+  const systemActivity = await detectActivityState();
+  if (systemActivity.status !== "UNKNOWN" && systemActivity.status !== "IDLE") {
+      const activity = mapSystemActivityToUserActivity(systemActivity);
+      storeActivities([activity]); // This will dedupe and track context switches
+  }
+
   // Return today's activities (including manually logged)
   return getTodayActivities();
+}
+
+function mapSystemActivityToUserActivity(state: { status: ActivityStatus; appName: string; details: string }): UserActivity {
+  let category = ActivityCategory.PRODUCTIVE;
+  
+  if (state.status === "PROCURING") category = ActivityCategory.BLATANT_PROCRASTINATION;
+  if (state.status === "GAMING") category = ActivityCategory.BLATANT_PROCRASTINATION;
+  if (state.status === "CODING") category = ActivityCategory.PRODUCTIVE;
+
+  return {
+    id: `sys-${now().getTime()}-${state.appName}`, // Unique ID per timestamp
+    timestamp: now(),
+    durationMinutes: 1, // Assume 1 minute snapshots
+    source: "app" as const,
+    category,
+    title: `${state.appName} (${state.details})`,
+    description: state.details,
+    appName: state.appName
+  };
 }

@@ -46,7 +46,7 @@ This isn't just an MCP server — it's a **core Archestra project** that leverag
 └──────────────────────┬───────────────────────────────────────┘
           MCP Streamable HTTP
 ┌──────────────────────▼───────────────────────────────────────┐
-│              Shame Engine MCP Server (18 tools)               │
+│              Shame Engine MCP Server (21 tools)               │
 │  Score Engine · Task Tracker · Activity Monitor               │
 │  Message Generator · Discord Shamer · GitHub Tracker          │
 │  Email Service · Anti-Disable · Dashboard API                 │

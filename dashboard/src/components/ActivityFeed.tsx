@@ -1,68 +1,56 @@
-import type { UserActivity } from "../api";
+import { UserActivity } from "../api";
+import { cn } from "../lib/utils";
+import { Laptop, Code, Coffee, Globe, Monitor } from "lucide-react";
 
 interface ActivityFeedProps {
   activities: UserActivity[];
 }
 
-function getCategoryBadge(category: string) {
+function getIcon(category: string) {
   switch (category) {
-    case "productive":
-      return <span className="badge badge-green">✅ Productive</span>;
-    case "productive_adjacent":
-      return <span className="badge badge-green">📚 Research</span>;
-    case "questionable":
-      return <span className="badge badge-amber">🤔 Questionable</span>;
-    case "blatant_procrastination":
-      return <span className="badge badge-red">🚨 Procrastinating!</span>;
-    default:
-      return <span className="badge bg-gray-700 text-gray-300">{category}</span>;
+    case "productive": return Code;
+    case "productive_adjacent": return Laptop;
+    case "questionable": return Globe;
+    case "blatant_procrastination": return Coffee;
+    default: return Laptop;
   }
-}
-
-function formatTime(timestamp: string): string {
-  return new Date(timestamp).toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
 }
 
 export function ActivityFeed({ activities }: ActivityFeedProps) {
-  if (activities.length === 0) {
-    return (
-      <div className="text-center py-8 text-gray-500">
-        <p className="text-3xl mb-2">🕵️</p>
-        <p className="text-sm">No activities tracked yet. Suspiciously quiet...</p>
-      </div>
-    );
-  }
-
-  // Show most recent first
   const sorted = [...activities].reverse();
 
   return (
-    <div className="space-y-2 max-h-[400px] overflow-y-auto pr-1">
-      {sorted.map((activity, idx) => (
-        <div
-          key={activity.id || idx}
-          className="flex items-center gap-3 p-3 rounded-lg bg-gray-800/40 hover:bg-gray-800/70 transition-colors"
-        >
-          <div className="text-xs text-gray-500 w-12 shrink-0 text-right">
-            {formatTime(activity.timestamp)}
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium truncate">{activity.title}</p>
-            <p className="text-xs text-gray-500">
-              {activity.durationMinutes}m · {activity.source}
-              {activity.url && (
-                <span className="ml-1 text-gray-600" title={activity.url}>
-                  🔗
-                </span>
-              )}
-            </p>
-          </div>
-          <div className="shrink-0">{getCategoryBadge(activity.category)}</div>
-        </div>
-      ))}
+    <div className="space-y-8 relative">
+        <div className="absolute left-4 top-2 bottom-2 w-px bg-border" />
+          {sorted.map((activity, idx) => {
+            const Icon = activity.source === 'app' ? Monitor : getIcon(activity.category);
+           return (
+             <div key={idx} className="relative pl-10">
+                <div className={cn(
+                   "absolute left-2 top-1 h-4 w-4 rounded-full border bg-background shadow flex items-center justify-center translate-x-[-1px]",
+                   activity.category === 'blatant_procrastination' ? "border-destructive text-destructive" : "border-primary text-primary"
+                )}>
+                   <div className={cn("h-2 w-2 rounded-full bg-current")} />
+                </div>
+                     <div className="flex flex-col gap-1">
+                       <p className="text-sm font-medium leading-none text-foreground">{activity.title}</p>
+                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                         <Icon className="w-3 h-3" />
+                         <span>
+                          {activity.source === 'app' ? (activity.appName || 'Application') : activity.source}
+                         </span>
+                         <span>•</span>
+                         <span>{new Date(activity.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                         <span>•</span>
+                         <span>{activity.durationMinutes}m</span>
+                       </div>
+                     </div>
+             </div>
+           )
+        })}
+        {sorted.length === 0 && (
+          <div className="text-center text-sm text-muted-foreground py-8">No activity recorded yet.</div>
+        )}
     </div>
   );
 }

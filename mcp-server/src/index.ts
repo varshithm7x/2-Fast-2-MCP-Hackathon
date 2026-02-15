@@ -3,11 +3,13 @@
 // The merciless AI agent that tracks, calculates, and shames.
 // ============================================================================
 
+import "dotenv/config";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { loadConfig, DASHBOARD_PORT, MCP_TRANSPORT, MCP_HTTP_PORT } from "./config.js";
 import { registerTools } from "./tools/index.js";
 import { startDashboardServer } from "./dashboard-api.js";
+import { fetchAllActivities } from "./services/activity-monitor.js";
 
 const ASCII_BANNER = `
 ╔══════════════════════════════════════════════════════════════╗
@@ -154,6 +156,22 @@ async function main(): Promise<void> {
   }
 
   console.error("[Shame Engine] The Shame Engine is watching... 👁️");
+
+  // Background poller: ensure system activity is sampled regularly
+  try {
+    const pollIntervalMs = 30_000; // 30s
+    setInterval(async () => {
+      try {
+        await fetchAllActivities(config.activitySources);
+        // no-op; fetchAllActivities will store/dedupe any system-detected activities
+      } catch (err) {
+        console.error("[Shame Engine] Activity poll failed:", err);
+      }
+    }, pollIntervalMs);
+    console.error("[Shame Engine] Background activity poller started (30s) ✅");
+  } catch (err) {
+    console.error("[Shame Engine] Failed to start activity poller:", err);
+  }
 }
 
 main().catch((error) => {

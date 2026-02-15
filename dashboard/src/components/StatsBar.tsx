@@ -1,74 +1,34 @@
-import type { ProductivityReport } from "../api";
+import { ProcrastinationScore } from "../api";
+import { Component, Zap, CheckCircle2 } from "lucide-react";
 
 interface StatsBarProps {
-  report: ProductivityReport;
-  contextSwitches: number;
-  tasksTotal: number;
+  score: ProcrastinationScore;
+  streak: number;
+  tasksCompleted: number;
 }
 
-function formatMinutes(min: number): string {
-  if (min < 60) return `${Math.round(min)}m`;
-  const hours = Math.floor(min / 60);
-  const mins = Math.round(min % 60);
-  return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
-}
-
-export function StatsBar({ report, contextSwitches, tasksTotal }: StatsBarProps) {
+export function StatsBar({ score, streak, tasksCompleted }: StatsBarProps) {
   const stats = [
-    {
-      label: "Tasks Done",
-      value: report.totalTasksCompleted,
-      emoji: "✅",
-      color: "text-green-400",
-    },
-    {
-      label: "Tasks Overdue",
-      value: report.totalTasksOverdue,
-      emoji: "🔴",
-      color: report.totalTasksOverdue > 0 ? "text-red-400" : "text-gray-400",
-    },
-    {
-      label: "Productive",
-      value: formatMinutes(report.totalMinutesProductive),
-      emoji: "💪",
-      color: "text-green-400",
-    },
-    {
-      label: "Wasted",
-      value: formatMinutes(report.totalMinutesWasted),
-      emoji: "🗑️",
-      color: report.totalMinutesWasted > 60 ? "text-red-400" : "text-amber-400",
-    },
-    {
-      label: "Switches",
-      value: contextSwitches,
-      emoji: "🔀",
-      color: contextSwitches > 20 ? "text-red-400" : "text-gray-400",
-    },
-    {
-      label: "Avg Score",
-      value: Math.round(report.averageScore),
-      emoji: "📊",
-      color: report.averageScore > 60 ? "text-red-400" : report.averageScore > 30 ? "text-amber-400" : "text-green-400",
-    },
+    { label: "Shame Level", value: `${score.shameLevel}/5`, icon: Component, desc: "Current DEFCON" },
+    { label: "Streak", value: `${streak}h`, icon: Zap, desc: "Productive Hours" },
+    { label: "Completed", value: tasksCompleted, icon: CheckCircle2, desc: "Tasks Done" },
   ];
 
   return (
-    <div className="shame-card">
-      <h2 className="text-sm font-semibold mb-3 text-gray-400">📊 Today's Stats</h2>
-      <div className="grid grid-cols-2 gap-3">
-        {stats.map((stat) => (
-          <div key={stat.label} className="flex items-center gap-2">
-            <span className="text-lg">{stat.emoji}</span>
-            <div>
-              <p className={`text-lg font-bold leading-tight ${stat.color}`}>
-                {stat.value}
-              </p>
-              <p className="text-xs text-gray-500">{stat.label}</p>
-            </div>
+    <div className="grid gap-4 md:grid-cols-3">
+      {stats.map((stat, idx) => {
+        const Icon = stat.icon;
+        return (
+          <div key={idx} className="rounded-xl border bg-card text-card-foreground shadow-sm p-6 flex flex-row items-center justify-between space-y-0 pb-2">
+             <div className="space-y-1">
+                <p className="text-sm font-medium text-muted-foreground">{stat.label}</p>
+                <div className="text-2xl font-bold">{stat.value}</div>
+                <p className="text-xs text-muted-foreground">{stat.desc}</p>
+             </div>
+             <Icon className="h-4 w-4 text-muted-foreground" />
           </div>
-        ))}
-      </div>
+        )
+      })}
     </div>
   );
 }

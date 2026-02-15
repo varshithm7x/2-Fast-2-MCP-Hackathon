@@ -1,38 +1,39 @@
-import type { MomCountdown as MomCountdownType } from "../api";
-import { useEffect, useState } from "react";
+import { ProcrastinationScore } from "../api";
+import { AlertOctagon } from "lucide-react";
+import { cn } from "../lib/utils";
 
 interface MomCountdownProps {
-  countdown: MomCountdownType;
+  score: ProcrastinationScore;
+  onAdmitDefeat: () => void;
 }
 
-export function MomCountdown({ countdown }: MomCountdownProps) {
-  const [flash, setFlash] = useState(false);
-
-  useEffect(() => {
-    if (!countdown.isActive) return;
-    const interval = setInterval(() => setFlash((f) => !f), 500);
-    return () => clearInterval(interval);
-  }, [countdown.isActive]);
-
-  if (!countdown.isActive) return null;
+export function MomCountdown({ score, onAdmitDefeat }: MomCountdownProps) {
+  const isNuclear = score.shameLevel >= 4;
+  
+  if (!isNuclear) return null;
 
   return (
-    <div className="mom-countdown text-center">
-      <div className={`text-4xl mb-2 ${flash ? "opacity-100" : "opacity-50"} transition-opacity`}>
-        ☢️
-      </div>
-      <h3 className="text-red-400 font-bold text-lg mb-1">
-        MOM EMAIL COUNTDOWN
-      </h3>
-      <div className="text-5xl font-mono font-bold text-red-300 mb-2">
-        {countdown.minutesRemaining}:{String(0).padStart(2, "0")}
-      </div>
-      <p className="text-xs text-red-400/80">
-        {countdown.warningsSent} warning{countdown.warningsSent !== 1 ? "s" : ""} sent
-      </p>
-      <p className="text-xs text-gray-500 mt-2">
-        Start working to cancel the countdown!
-      </p>
-    </div>
+     <div className="rounded-xl border border-destructive bg-destructive/10 text-destructive shadow-sm p-6 relative overflow-hidden h-full flex flex-col justify-center">
+        <div className="absolute top-0 right-0 p-6 opacity-10">
+           <AlertOctagon className="w-24 h-24" />
+        </div>
+        
+        <div className="relative z-10 space-y-4">
+           <h3 className="text-lg font-bold flex items-center gap-2">
+              <AlertOctagon className="w-5 h-5" />
+              ESCALATION PROTOCOL ACTIVE
+           </h3>
+           <p className="text-sm font-medium">Shame level critical. External notification (Mom) is imminent if productive output does not resume immediately.</p>
+           
+           <div className="grid grid-cols-2 gap-4 mt-4">
+              <button 
+                onClick={onAdmitDefeat}
+                className="col-span-2 bg-destructive text-destructive-foreground hover:bg-destructive/90 h-9 px-4 py-2 rounded-md text-sm font-medium transition-colors"
+               >
+                 Admit Defeat (Reset Score)
+              </button>
+           </div>
+        </div>
+     </div>
   );
 }

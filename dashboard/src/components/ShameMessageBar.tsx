@@ -1,28 +1,36 @@
-import type { ShameMessage } from "../api";
+import { ShameMessage } from "../api";
+import { AlertTriangle, Info, ShieldAlert } from "lucide-react";
+import { cn } from "../lib/utils";
 
 interface ShameMessageBarProps {
-  message: ShameMessage;
-  score: number;
+  message: ShameMessage | null;
+  level: number;
 }
 
-function getBarStyle(level: number): string {
-  switch (level) {
-    case 1: return "bg-green-500/10 border-green-500/30 text-green-400";
-    case 2: return "bg-amber-500/10 border-amber-500/30 text-amber-400";
-    case 3: return "bg-orange-500/10 border-orange-500/30 text-orange-400";
-    case 4: return "bg-red-500/10 border-red-500/30 text-red-400";
-    case 5: return "bg-purple-500/10 border-purple-500/30 text-purple-300 animate-shake";
-    default: return "bg-gray-500/10 border-gray-500/30 text-gray-400";
-  }
-}
+export function ShameMessageBar({ message, level }: ShameMessageBarProps) {
+  if (!message) return null;
 
-export function ShameMessageBar({ message, score }: ShameMessageBarProps) {
+  const isSevere = level >= 4;
+  const isNuclear = level >= 5;
+
   return (
-    <div className={`border-b ${getBarStyle(message.level)} px-4 py-3`}>
-      <div className="max-w-7xl mx-auto flex items-center gap-3">
-        <span className="text-2xl shrink-0">{message.emoji}</span>
-        <p className="text-sm font-medium flex-1">{message.message}</p>
-        <span className="text-xs opacity-70 shrink-0">Score: {score}</span>
+    <div className={cn(
+      "relative w-full rounded-lg border p-4 [&>svg~*]:pl-7 [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-foreground",
+      isSevere 
+        ? "border-destructive/50 text-destructive dark:border-destructive [&>svg]:text-destructive bg-destructive/10" 
+        : "bg-background text-foreground"
+    )}>
+      {isNuclear ? <ShieldAlert className="h-4 w-4" /> : <AlertTriangle className="h-4 w-4" />}
+      <h5 className="mb-1 font-medium leading-none tracking-tight">
+        {isNuclear ? "CRITICAL ALERT" : "Status Update"}
+      </h5>
+      <div className="text-sm [&_p]:leading-relaxed">
+        <p className="font-semibold text-lg mb-1">"{message.message}" {message.emoji}</p>
+        {message.action && (
+          <p className="mt-2 text-muted-foreground font-medium">
+             Action Required: <span className="text-foreground underline">{message.action}</span>
+          </p>
+        )}
       </div>
     </div>
   );

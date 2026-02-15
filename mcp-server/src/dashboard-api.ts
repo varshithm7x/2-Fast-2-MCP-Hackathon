@@ -173,6 +173,7 @@ export async function startDashboardServer(port: number): Promise<void> {
     const interval = setInterval(async () => {
       try {
         const tasks = await fetchAllTasks(config.taskSources);
+        // This now includes system activity polling every 30s
         const activities = await fetchAllActivities(config.activitySources);
         const switches = getContextSwitchCount();
         const score = calculateProcrastinationScore(activities, tasks, switches);

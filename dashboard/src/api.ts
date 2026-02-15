@@ -13,6 +13,11 @@ export interface ScoreBreakdown {
   contextSwitchPenalty: number;
 }
 
+export interface ScoreHistoryPoint {
+  score: number;
+  timestamp: string;
+}
+
 export interface ProcrastinationScore {
   score: number;
   shameLevel: number;

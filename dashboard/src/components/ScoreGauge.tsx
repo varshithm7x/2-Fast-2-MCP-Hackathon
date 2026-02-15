@@ -1,93 +1,67 @@
-import { useMemo } from "react";
+import { ProcrastinationScore } from "../api";
+import { cn } from "../lib/utils";
 
 interface ScoreGaugeProps {
-  score: number;
-  trend: "improving" | "worsening" | "stable";
+  score: ProcrastinationScore;
 }
 
-function getScoreColor(score: number): string {
-  if (score <= 20) return "#22c55e";
-  if (score <= 40) return "#84cc16";
-  if (score <= 60) return "#f59e0b";
-  if (score <= 80) return "#ef4444";
-  return "#7c3aed";
-}
-
-function getTrendEmoji(trend: string): string {
-  switch (trend) {
-    case "improving": return "📉";
-    case "worsening": return "📈";
-    default: return "➡️";
-  }
-}
-
-function getScoreLabel(score: number): string {
-  if (score <= 20) return "Doing fine";
-  if (score <= 40) return "Slipping...";
-  if (score <= 60) return "Uh oh";
-  if (score <= 80) return "Code red!";
-  return "NUCLEAR";
-}
-
-export function ScoreGauge({ score, trend }: ScoreGaugeProps) {
-  const color = useMemo(() => getScoreColor(score), [score]);
-  const circumference = 2 * Math.PI * 90;
-  const progress = (score / 100) * circumference;
-  const isNuclear = score > 80;
-
+export function ScoreGauge({ score }: ScoreGaugeProps) {
+  const value = score.score;
+  const level = score.shameLevel;
+  
+  // Calculate circle properties
+  const radius = 80;
+  const circumference = 2 * Math.PI * radius;
+  const progress = (value / 100) * circumference;
+  
+  const isHigh = value > 50;
+  const colorClass = isHigh ? "text-destructive" : "text-primary";
+  
   return (
-    <div className="relative flex flex-col items-center">
-      <svg width="220" height="220" viewBox="0 0 220 220" className={isNuclear ? "animate-pulse-fast" : ""}>
-        {/* Background ring */}
-        <circle
-          cx="110"
-          cy="110"
-          r="90"
-          fill="none"
-          stroke="#1f2937"
-          strokeWidth="16"
-          strokeLinecap="round"
-        />
-        {/* Progress ring */}
-        <circle
-          cx="110"
-          cy="110"
-          r="90"
-          fill="none"
-          stroke={color}
-          strokeWidth="16"
-          strokeLinecap="round"
-          strokeDasharray={`${progress} ${circumference - progress}`}
-          strokeDashoffset={circumference / 4}
-          className="transition-all duration-1000 ease-out"
-          style={{ filter: isNuclear ? `drop-shadow(0 0 12px ${color})` : undefined }}
-        />
-        {/* Score text */}
-        <text
-          x="110"
-          y="100"
-          textAnchor="middle"
-          fill={color}
-          fontSize="48"
-          fontWeight="800"
-          className="transition-all duration-500"
-        >
-          {score}
-        </text>
-        <text x="110" y="125" textAnchor="middle" fill="#9ca3af" fontSize="14">
-          / 100
-        </text>
-      </svg>
-
-      <div className="text-center mt-2">
-        <span
-          className="text-sm font-semibold px-3 py-1 rounded-full"
-          style={{ backgroundColor: `${color}22`, color }}
-        >
-          {getTrendEmoji(trend)} {getScoreLabel(score)}
-        </span>
-        <p className="text-xs text-gray-500 mt-1">
-          Trend: {trend === "improving" ? "Getting better!" : trend === "worsening" ? "Getting worse..." : "Holding steady"}
+    <div className="rounded-xl border bg-card text-card-foreground shadow-sm p-6 flex flex-col items-center justify-center h-full w-full">
+      <div className="relative w-48 h-48 flex items-center justify-center">
+        <svg className="transform -rotate-90 w-full h-full">
+          <circle
+            cx="96"
+            cy="96"
+            r={radius}
+            stroke="currentColor"
+            strokeWidth="12"
+            fill="transparent"
+            className="text-muted/20"
+          />
+          <circle
+            cx="96"
+            cy="96"
+            r={radius}
+            stroke="currentColor"
+            strokeWidth="12"
+            fill="transparent"
+            strokeDasharray={circumference}
+            strokeDashoffset={circumference - progress}
+            strokeLinecap="round"
+            className={cn("transition-all duration-1000 ease-out", colorClass)}
+          />
+        </svg>
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <span className={cn("text-4xl font-bold tracking-tighter", colorClass)}>
+            {Math.round(value)}
+          </span>
+          <span className="text-xs text-muted-foreground uppercase font-medium mt-1">
+            Current Score
+          </span>
+        </div>
+      </div>
+      
+      <div className="mt-4 text-center">
+        <div className={cn(
+          "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+          isHigh ? "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80" : "border-transparent bg-primary text-primary-foreground hover:bg-primary/80"
+        )}>
+           Level {level}
+        </div>
+        <p className="text-sm text-muted-foreground mt-2">
+           {score.summary}
         </p>
       </div>
     </div>

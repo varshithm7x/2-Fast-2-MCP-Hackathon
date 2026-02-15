@@ -1,85 +1,35 @@
-import type { ScoreBreakdown } from "../api";
+import { ScoreBreakdown } from "../api";
+import { cn } from "../lib/utils";
 
 interface BreakdownPanelProps {
   breakdown: ScoreBreakdown;
 }
 
-interface FactorRow {
-  label: string;
-  emoji: string;
-  value: number;
-  description: string;
-}
-
-function getBarColor(value: number): string {
-  if (value <= 25) return "bg-green-500";
-  if (value <= 50) return "bg-amber-500";
-  if (value <= 75) return "bg-orange-500";
-  return "bg-red-500";
-}
-
 export function BreakdownPanel({ breakdown }: BreakdownPanelProps) {
-  const factors: FactorRow[] = [
-    {
-      label: "Time Wasted",
-      emoji: "⏰",
-      value: Math.round(breakdown.timeWastedRatio),
-      description: "Non-productive vs total time",
-    },
-    {
-      label: "Deadline Pressure",
-      emoji: "⚠️",
-      value: Math.round(breakdown.deadlineProximityMultiplier),
-      description: "How close deadlines are",
-    },
-    {
-      label: "Task Completion",
-      emoji: "📋",
-      value: Math.round(breakdown.taskCompletionRatio),
-      description: "Overdue vs total tasks",
-    },
-    {
-      label: "Priority Severity",
-      emoji: "🔥",
-      value: Math.round(breakdown.prioritySeverityPenalty),
-      description: "High-priority task avoidance",
-    },
-    {
-      label: "Streak Penalty",
-      emoji: "📅",
-      value: Math.round(breakdown.streakPenalty),
-      description: "Consecutive procrastination days",
-    },
-    {
-      label: "Context Switching",
-      emoji: "🔀",
-      value: Math.round(breakdown.contextSwitchPenalty),
-      description: "App/tab switching frequency",
-    },
+  const items = [
+    { label: "Time Wasted", value: breakdown.timeWastedRatio, format: "percent", color: "text-destructive" },
+    { label: "Deadline Logic", value: breakdown.deadlineProximityMultiplier, format: "multiplier", color: "text-muted-foreground" },
+    { label: "Task Completion", value: breakdown.taskCompletionRatio, format: "percent", color: "text-primary" },
+    { label: "Context Switching", value: breakdown.contextSwitchPenalty, format: "flat", color: "text-warning" },
   ];
 
   return (
-    <div className="shame-card">
-      <h2 className="text-lg font-semibold mb-4">🧮 Score Breakdown</h2>
-      <div className="space-y-3">
-        {factors.map((f) => (
-          <div key={f.label}>
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-sm">
-                <span className="mr-1.5">{f.emoji}</span>
-                {f.label}
-              </span>
-              <span className="text-sm font-semibold text-gray-300">{f.value}%</span>
-            </div>
-            <div className="h-2 bg-gray-800 rounded-full overflow-hidden">
-              <div
-                className={`h-full rounded-full transition-all duration-700 ${getBarColor(f.value)}`}
-                style={{ width: `${f.value}%` }}
-              />
-            </div>
-            <p className="text-xs text-gray-600 mt-0.5">{f.description}</p>
-          </div>
-        ))}
+    <div className="rounded-xl border bg-card text-card-foreground shadow-sm h-full">
+      <div className="flex flex-col space-y-1.5 p-6">
+        <h3 className="font-semibold leading-none tracking-tight">Score Breakdown</h3>
+        <p className="text-sm text-muted-foreground">Why you are failing (mathematically).</p>
+      </div>
+      <div className="p-6 pt-0 grid grid-cols-2 gap-4">
+         {items.map((item, idx) => (
+           <div key={idx} className="space-y-1">
+              <p className="text-sm font-medium text-muted-foreground">{item.label}</p>
+              <p className={cn("text-2xl font-bold", item.color)}>
+                 {item.format === 'percent' ? `${Math.round(item.value * 100)}%` : 
+                  item.format === 'multiplier' ? `${item.value.toFixed(1)}x` : 
+                  item.value}
+              </p>
+           </div>
+         ))}
       </div>
     </div>
   );

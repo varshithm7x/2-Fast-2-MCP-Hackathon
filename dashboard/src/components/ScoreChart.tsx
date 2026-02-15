@@ -1,84 +1,61 @@
-import {
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  ReferenceLine,
-} from "recharts";
+import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { ScoreHistoryPoint } from "../api";
 
 interface ScoreChartProps {
-  history: Array<{ score: number; timestamp: string }>;
-}
-
-function getZoneColor(score: number): string {
-  if (score <= 20) return "#22c55e";
-  if (score <= 40) return "#84cc16";
-  if (score <= 60) return "#f59e0b";
-  if (score <= 80) return "#ef4444";
-  return "#7c3aed";
+  history: ScoreHistoryPoint[];
 }
 
 export function ScoreChart({ history }: ScoreChartProps) {
-  if (history.length < 2) {
-    return (
-      <div className="h-[250px] flex items-center justify-center text-gray-500">
-        <div className="text-center">
-          <p className="text-3xl mb-2">📊</p>
-          <p className="text-sm">Not enough data for a chart yet. Keep procrastinating!</p>
+  return (
+    <div className="rounded-xl border bg-card text-card-foreground shadow-sm w-full">
+      <div className="flex flex-col space-y-1.5 p-6">
+        <h3 className="font-semibold leading-none tracking-tight">Score History</h3>
+        <p className="text-sm text-muted-foreground">Tracking shame levels over time.</p>
+      </div>
+      <div className="p-6 pt-0 pl-0">
+        <div className="h-[300px] w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={history} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+              <defs>
+                <linearGradient id="score" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <XAxis 
+                dataKey="timestamp" 
+                tickFormatter={(val: string | number) => new Date(val).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                stroke="#888888"
+                fontSize={12}
+                tickLine={false}
+                axisLine={false}
+                minTickGap={30}
+              />
+              <YAxis 
+                stroke="#888888"
+                fontSize={12}
+                tickLine={false}
+                axisLine={false}
+                tickFormatter={(value: number) => `${value}`}
+                domain={[0, 100]}
+              />
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+              <Tooltip 
+                 contentStyle={{ backgroundColor: 'hsl(var(--popover))', borderColor: 'hsl(var(--border))', borderRadius: '8px' }}
+                 itemStyle={{ color: 'hsl(var(--foreground))' }}
+              />
+              <Area
+                type="monotone"
+                dataKey="score"
+                stroke="hsl(var(--primary))"
+                strokeWidth={2}
+                fillOpacity={1}
+                fill="url(#score)"
+              />
+            </AreaChart>
+          </ResponsiveContainer>
         </div>
       </div>
-    );
-  }
-
-  const data = history.map((entry) => ({
-    ...entry,
-    time: new Date(entry.timestamp).toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-    }),
-    fill: getZoneColor(entry.score),
-  }));
-
-  return (
-    <ResponsiveContainer width="100%" height={250}>
-      <AreaChart data={data} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-        <defs>
-          <linearGradient id="scoreGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#7c3aed" stopOpacity={0.5} />
-            <stop offset="40%" stopColor="#f59e0b" stopOpacity={0.3} />
-            <stop offset="100%" stopColor="#22c55e" stopOpacity={0.05} />
-          </linearGradient>
-        </defs>
-        <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
-        <XAxis dataKey="time" tick={{ fill: "#6b7280", fontSize: 11 }} />
-        <YAxis domain={[0, 100]} tick={{ fill: "#6b7280", fontSize: 11 }} />
-        <Tooltip
-          contentStyle={{
-            backgroundColor: "#111827",
-            border: "1px solid #374151",
-            borderRadius: "8px",
-            color: "#e5e7eb",
-          }}
-          formatter={(value: number) => [`${value}/100`, "Procrastination Score"]}
-        />
-        {/* Shame zone lines */}
-        <ReferenceLine y={20} stroke="#22c55e" strokeDasharray="4 4" strokeOpacity={0.3} />
-        <ReferenceLine y={40} stroke="#84cc16" strokeDasharray="4 4" strokeOpacity={0.3} />
-        <ReferenceLine y={60} stroke="#f59e0b" strokeDasharray="4 4" strokeOpacity={0.3} />
-        <ReferenceLine y={80} stroke="#ef4444" strokeDasharray="4 4" strokeOpacity={0.3} />
-        <Area
-          type="monotone"
-          dataKey="score"
-          stroke="#7c3aed"
-          fill="url(#scoreGradient)"
-          strokeWidth={2}
-          dot={false}
-          activeDot={{ r: 5, fill: "#7c3aed" }}
-        />
-      </AreaChart>
-    </ResponsiveContainer>
+    </div>
   );
 }

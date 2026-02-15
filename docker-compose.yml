@@ -44,15 +44,18 @@ services:
       context: ./mcp-server
       dockerfile: Dockerfile
     container_name: shame-engine-mcp
+    pid: "host"       # Required to see host processes (VS Code, etc)
     ports:
       - "8080:8080"      # MCP Streamable HTTP transport
       - "3737:3737"      # Dashboard REST API + SSE
     env_file: .env
     environment:
+      - PULSE_SERVER=unix:/tmp/pulse
       - MCP_TRANSPORT=streamable-http
       - MCP_HTTP_PORT=8080
       - DASHBOARD_PORT=3737
     volumes:
+      - /run/user/1000/pulse/native:/tmp/pulse:ro # Read-only access to host audio
       - shame-data:/app/data
     restart: unless-stopped
 
