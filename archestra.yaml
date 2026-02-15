@@ -1,0 +1,118 @@
+# ============================================================================
+# Procrastination Shame Engine — Archestra Project Manifest
+# ============================================================================
+#
+# This file documents how the Shame Engine integrates with Archestra Platform.
+# It is NOT a runtime config — Archestra is configured through its Web UI.
+#
+# For setup instructions, see: archestra/setup.md
+# ============================================================================
+
+project:
+  name: procrastination-shame-engine
+  version: "1.0.0"
+  description: >
+    AI agent that mercilessly tracks productivity, calculates procrastination
+    scores (0-100), and escalates shame from gentle nudges to sending your mom
+    an email. Built as a core Archestra project for the 2Fast2MCP Hackathon.
+
+# ─── Archestra Platform Features Used ────────────────────────────────────
+
+archestra_integration:
+  # Our MCP server is registered as a Remote MCP Server in Archestra's
+  # Private MCP Registry, connected via Streamable HTTP transport.
+  mcp_registry:
+    server_name: Procrastination Shame Engine
+    transport: streamable-http
+    url: http://shame-engine:8080/mcp
+    tools_count: 18
+
+  # The Shame Engine Agent is created in Archestra's no-code Agent Builder
+  # with the system prompt from archestra/agent-system-prompt.md
+  agent_builder:
+    agent_name: Procrastination Shame Engine
+    system_prompt: archestra/agent-system-prompt.md
+    tools: all  # All 18 MCP tools assigned
+
+  # Dynamic Tools — trust-based tool restriction prevents data exfiltration
+  # and prompt injection. See archestra/dynamic-tools-policy.md
+  dynamic_tools:
+    policy: archestra/dynamic-tools-policy.md
+    trusted_tools:
+      - get_procrastination_score
+      - get_dashboard_state
+      - get_score_history
+      - get_shame_message
+      - generate_creative_excuse
+      - add_task
+      - complete_task
+      - admit_defeat_start_working
+      - cancel_mom_countdown
+      - check_mom_email_status
+    semi_trusted_tools:
+      - sync_tasks          # External API data (Todoist, Notion, Linear, Jira)
+      - sync_activities     # External API data (RescueTime, Toggl)
+      - check_github_activity  # GitHub commit messages (user content)
+    restricted_tools:
+      - post_shame_to_discord   # Public write side-effect
+      - post_daily_report       # Public write side-effect
+      - trigger_mom_email_check # Nuclear option
+      - attempt_disable         # Security-critical
+      - log_activity            # Write to activity log
+
+  # Dual LLM Quarantine — protects against prompt injection in external API
+  # responses (task titles, commit messages, etc.)
+  dual_llm:
+    enabled: true
+    max_rounds: 5
+    protects_against:
+      - Malicious task titles from Todoist/Notion containing injection prompts
+      - Adversarial GitHub commit messages from collaborators
+      - Crafted RescueTime/Toggl activity names
+      - Any external data attempting to hijack agent behavior
+
+  # Cost Limits — prevents runaway LLM spending from periodic score checks
+  cost_limits:
+    per_action: $0.05
+    per_hour: $1.00
+    per_day: $10.00
+    alert_at: 80%
+
+  # MCP Gateway — exposes the agent to external MCP clients (Claude, etc.)
+  mcp_gateway:
+    name: Shame Engine Gateway
+    auth: bearer_token
+    protocols:
+      - oauth_2.1
+      - bearer_token
+
+  # A2A — Agent-to-Agent protocol for programmatic access
+  a2a:
+    endpoint: /v1/a2a/{agent_id}
+    capabilities:
+      - message/send
+
+  # Observability — built-in metrics, traces, and logs
+  observability:
+    metrics:
+      - procrastination_score (gauge)
+      - shame_messages_sent (counter)
+      - tasks_completed (counter)
+      - mom_emails_sent (counter)
+      - disable_attempts (counter)
+      - tool_call_latency (histogram)
+    traces: enabled
+    logs: info
+
+# ─── Services ────────────────────────────────────────────────────────────
+
+services:
+  archestra_platform:
+    image: archestra/platform:latest
+    ports: [9000, 3000]     # API, Chat UI
+  shame_engine_mcp:
+    build: ./mcp-server
+    ports: [8080, 3737]     # MCP transport, Dashboard API
+  dashboard:
+    build: ./dashboard
+    port: 3001

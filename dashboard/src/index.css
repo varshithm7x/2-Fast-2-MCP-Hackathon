@@ -1,0 +1,67 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-gray-950 text-gray-100 antialiased;
+    font-family: "Inter", system-ui, -apple-system, sans-serif;
+  }
+}
+
+@layer components {
+  .score-ring {
+    @apply relative flex items-center justify-center;
+  }
+
+  .shame-card {
+    @apply bg-gray-900 border border-gray-800 rounded-2xl p-6 shadow-lg;
+  }
+
+  .badge {
+    @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold;
+  }
+
+  .badge-green {
+    @apply bg-green-500/20 text-green-400 border border-green-500/30;
+  }
+  .badge-amber {
+    @apply bg-amber-500/20 text-amber-400 border border-amber-500/30;
+  }
+  .badge-red {
+    @apply bg-red-500/20 text-red-400 border border-red-500/30;
+  }
+  .badge-purple {
+    @apply bg-purple-500/20 text-purple-400 border border-purple-500/30;
+  }
+
+  .mom-countdown {
+    @apply animate-glow-red border-2 border-red-500 rounded-2xl p-6;
+    background: radial-gradient(circle at center, rgba(239, 68, 68, 0.1), transparent);
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #111827;
+}
+::-webkit-scrollbar-thumb {
+  background: #374151;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #4b5563;
+}
+
+/* Nuclear mode body flash */
+.nuclear-mode {
+  animation: nuclear-flash 3s ease-in-out infinite;
+}
+
+@keyframes nuclear-flash {
+  0%, 100% { background-color: #030712; }
+  50% { background-color: #1a0a2e; }
+}

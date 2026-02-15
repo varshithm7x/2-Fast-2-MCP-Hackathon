@@ -1,0 +1,44 @@
+{
+  "name": "procrastination-shame-engine",
+  "version": "1.0.0",
+  "description": "An AI agent MCP server that mercilessly tracks productivity, calculates procrastination scores, and publicly shames users into getting work done.",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx watch src/index.ts",
+    "lint": "eslint src/",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "mcp",
+    "archestra",
+    "procrastination",
+    "productivity",
+    "shame-engine",
+    "ai-agent"
+  ],
+  "author": "Procrastination Shame Engine Team",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.1",
+    "zod": "^3.23.8",
+    "node-cron": "^3.0.3",
+    "discord.js": "^14.16.3",
+    "nodemailer": "^6.9.16",
+    "express": "^4.21.1",
+    "cors": "^2.8.5",
+    "eventsource": "^2.0.2",
+    "uuid": "^10.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.1",
+    "@types/express": "^5.0.0",
+    "@types/cors": "^2.8.17",
+    "@types/nodemailer": "^6.4.17",
+    "@types/uuid": "^10.0.0",
+    "typescript": "^5.7.2",
+    "tsx": "^4.19.2"
+  }
+}

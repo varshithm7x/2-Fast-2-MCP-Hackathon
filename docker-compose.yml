@@ -1,0 +1,76 @@
+# ============================================================================
+# Procrastination Shame Engine - Docker Compose
+# Archestra-native deployment: runs the platform + our MCP server + dashboard
+# ============================================================================
+#
+# Architecture:
+#   Archestra Platform (port 3000 UI, 9000 API)
+#       └── connects to → Shame Engine MCP Server (port 8080)
+#   Dashboard (port 3001) → reads from → Shame Engine API (port 3737)
+#
+# After `docker compose up`:
+#   1. Open Archestra UI at http://localhost:3000
+#   2. Register the shame-engine in MCP Registry (see archestra/setup.md)
+#   3. Create the Shame Engine Agent in Agent Builder
+#   4. Configure Dynamic Tools & Dual LLM security
+#   5. Chat with your agent or expose via MCP Gateway
+#
+# ============================================================================
+
+services:
+  # ─── Archestra Platform ───────────────────────────────────────────────
+  # The AI orchestration platform — chat UI, agent builder, MCP registry,
+  # MCP gateway, dynamic tools, dual-LLM security, cost limits, observability
+  archestra:
+    image: archestra/platform:latest
+    container_name: archestra-platform
+    ports:
+      - "9000:9000"      # Archestra API
+      - "3000:3000"      # Archestra Chat UI & Admin
+    environment:
+      - ARCHESTRA_QUICKSTART=true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - archestra-postgres-data:/var/lib/postgresql/data
+      - archestra-app-data:/app/data
+    restart: unless-stopped
+
+  # ─── Shame Engine MCP Server ──────────────────────────────────────────
+  # Our MCP server — registered into Archestra as a remote MCP server
+  # via the Private MCP Registry. Archestra connects to this at
+  # http://shame-engine:8080/mcp (internal Docker network)
+  shame-engine:
+    build:
+      context: ./mcp-server
+      dockerfile: Dockerfile
+    container_name: shame-engine-mcp
+    ports:
+      - "8080:8080"      # MCP Streamable HTTP transport
+      - "3737:3737"      # Dashboard REST API + SSE
+    env_file: .env
+    environment:
+      - MCP_TRANSPORT=streamable-http
+      - MCP_HTTP_PORT=8080
+      - DASHBOARD_PORT=3737
+    volumes:
+      - shame-data:/app/data
+    restart: unless-stopped
+
+  # ─── Dashboard Web UI ─────────────────────────────────────────────────
+  # Custom React dashboard — shows scores, activities, tasks, charts.
+  # Port 3001 (Archestra UI uses 3000)
+  dashboard:
+    build:
+      context: ./dashboard
+      dockerfile: Dockerfile
+    container_name: shame-dashboard
+    ports:
+      - "3001:80"
+    depends_on:
+      - shame-engine
+    restart: unless-stopped
+
+volumes:
+  archestra-postgres-data:
+  archestra-app-data:
+  shame-data:
